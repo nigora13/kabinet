@@ -86,6 +86,7 @@ h1{font-family:"Unbounded",sans-serif;font-weight:700;font-size:clamp(24px,7vw,3
 .seg button{flex:1;font-family:"Golos Text",sans-serif;font-size:14px;font-weight:600;padding:11px;border-radius:12px;border:1.5px solid var(--line);background:var(--surface);color:var(--muted);cursor:pointer;transition:.15s;}
 .seg button.on[data-kind="income"]{background:var(--income-soft);border-color:var(--income);color:var(--income);}
 .seg button.on[data-kind="expense"]{background:var(--expense-soft);border-color:var(--expense);color:var(--expense);}
+.seg button.on{background:var(--violet-soft);border-color:var(--violet);color:var(--violet);}
 
 .field{margin-bottom:11px;}
 .field label{display:block;font-size:12.5px;font-weight:600;margin-bottom:5px;}
@@ -197,7 +198,11 @@ h1{font-family:"Unbounded",sans-serif;font-weight:700;font-size:clamp(24px,7vw,3
     <button class="tab" role="tab" aria-selected="false" data-tab="sched">📋 Расписание</button>
     <button class="tab" role="tab" aria-selected="false" data-tab="shop">🛒 Продукты</button>
     <button class="tab" role="tab" aria-selected="false" data-tab="fin">💰 Финансы</button>
+    <button class="tab" role="tab" aria-selected="false" data-tab="inc">📈 Доход</button>
     <button class="tab" role="tab" aria-selected="false" data-tab="goals">🏦 Копилка</button>
+    <button class="tab" role="tab" aria-selected="false" data-tab="sav">💎 Сбережения</button>
+    <button class="tab" role="tab" aria-selected="false" data-tab="wish">🌍 Мой мир</button>
+    <button class="tab" role="tab" aria-selected="false" data-tab="ourg">🎯 Цели</button>
     <button class="tab" role="tab" aria-selected="false" data-tab="cal">📅 Календарь</button>
   </div>
 
@@ -348,6 +353,71 @@ h1{font-family:"Unbounded",sans-serif;font-weight:700;font-size:clamp(24px,7vw,3
     </div>
   </section>
 
+  <!-- ДОХОД -->
+  <section id="tab-inc" class="hide">
+    <div class="card">
+      <h2>Мой доход</h2>
+      <div style="font-family:'Unbounded',sans-serif;font-size:26px;font-weight:600;color:var(--income)" id="inc-month-total">0 ₽</div>
+      <div class="note" style="margin-top:2px">за <span id="inc-month-name">этот месяц</span></div>
+      <div class="acts" style="margin-top:12px">
+        <input id="inc-src" type="text" maxlength="40" placeholder="Источник (напр. Реклама, WB)">
+      </div>
+      <div class="acts" style="margin-top:8px">
+        <input id="inc-amt" type="text" inputmode="decimal" placeholder="Сумма, ₽" style="flex:1">
+        <input id="inc-date" type="date" style="flex:1.1">
+        <button class="add" id="inc-btn">Добавить</button>
+      </div>
+    </div>
+    <div class="card">
+      <h2>По месяцам</h2>
+      <div class="list" id="inc-list"></div>
+    </div>
+  </section>
+
+  <!-- СБЕРЕЖЕНИЯ -->
+  <section id="tab-sav" class="hide">
+    <div class="card">
+      <h2>Сбережения</h2>
+      <div style="font-family:'Unbounded',sans-serif;font-size:24px;font-weight:600;color:var(--violet)" id="sav-total">0 ₽</div>
+      <div class="note" style="margin-top:2px">Общий итог по всем копилкам</div>
+    </div>
+    <div id="sav-buckets"></div>
+  </section>
+
+  <!-- ХОЧУ -->
+  <section id="tab-wish" class="hide">
+    <div class="card">
+      <h2>Мой мир</h2>
+      <div class="seg" id="wish-seg" style="flex-wrap:wrap">
+        <button data-wcat="films" class="on" style="flex:1 1 42%">🎬 Фильмы</button>
+        <button data-wcat="doramas" style="flex:1 1 42%">📺 Дорамы</button>
+        <button data-wcat="anime" style="flex:1 1 42%">✨ Аниме</button>
+        <button data-wcat="buy" style="flex:1 1 42%">💫 Вишлист</button>
+      </div>
+      <div class="acts" style="margin-bottom:10px">
+        <input id="wish-input" type="text" maxlength="80" placeholder="напр. Крем, книга, курс">
+        <button class="add" id="wish-btn">Добавить</button>
+      </div>
+      <div class="list" id="wish-list"></div>
+      <button class="linkbtn" id="wish-clear" style="display:none">Убрать отмеченное</button>
+    </div>
+    <p class="note" style="margin-top:0">Фильмы, дорамы, аниме и вишлист. Жми на нужную под-вкладку, добавляй и отмечай галочкой. Сумма не нужна.</p>
+  </section>
+
+  <!-- ЦЕЛИ (наши с супругом) -->
+  <section id="tab-ourg" class="hide">
+    <div class="card">
+      <h2>Наши цели</h2>
+      <div class="acts" style="margin-bottom:10px">
+        <input id="ourg-input" type="text" maxlength="80" placeholder="напр. Отпуск всей семьёй">
+        <button class="add" id="ourg-btn">Добавить</button>
+      </div>
+      <div class="list" id="ourg-list"></div>
+      <button class="linkbtn" id="ourg-clear" style="display:none">Убрать выполненное</button>
+    </div>
+    <p class="note" style="margin-top:0">Общие цели с супругом. Отмечайте галочкой, когда достигли. Без суммы — деньги в Копилке.</p>
+  </section>
+
   <p class="note center" id="storage-note">Данные сохраняются автоматически.</p>
   <div class="foot">Собрала Лина · для Нигоры 🌿</div>
 </div>
@@ -393,9 +463,14 @@ h1{font-family:"Unbounded",sans-serif;font-weight:700;font-size:clamp(24px,7vw,3
   };
 
   function defState(){return {tx:[],goals:[],events:[],today:{date:"",tasks:[]},doneDays:[],groceries:[],delegated:[],history:[],
-    schedule:DEFAULT_SCHEDULE.slice(),scheduleDone:{date:"",ids:[]},
+    schedule:DEFAULT_SCHEDULE.slice(),scheduleDone:{date:"",ids:[]},wish:{buy:[],films:[],doramas:[],anime:[]},
+    income:[],savings:{son:[],daughter:[],common:[],mine:[]},ourgoals:[],
     settings:{city:"ekb",method:"mwl",asr:"hanafi",shopDay:-1}};}
   var state=defState();
+  var wishCat="films";
+  var MONTHS_RU=["январь","февраль","март","апрель","май","июнь","июль","август","сентябрь","октябрь","ноябрь","декабрь"];
+  function monthNameRu(k){var p=(k||"").split("-");if(p.length<2)return k||"";var m=parseInt(p[1],10);return (MONTHS_RU[m-1]||"")+" "+p[0];}
+  var SAV=[["son","Сын","👦"],["daughter","Дочь","👧"],["common","Общее","🏠"],["mine","Моё","💜"]];
   var docref=null, firstSnap=true;
 
   function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,7);}
@@ -440,10 +515,15 @@ h1{font-family:"Unbounded",sans-serif;font-weight:700;font-size:clamp(24px,7vw,3
   function hhmm(h){h=fhr(h+0.5/60);var H=Math.floor(h);var M=Math.floor((h-H)*60);return (H<10?"0":"")+H+":"+(M<10?"0":"")+M;}
 
   /* ---------- storage ---------- */
+  function normWish(w){w=w||{};function A(x){return Array.isArray(x)?x.filter(function(i){return i&&i.id;}).map(function(i){return {id:i.id,text:String(i.text||""),done:!!i.done};}):[];}return {buy:A(w.buy),films:A(w.films),doramas:A(w.doramas),anime:A(w.anime)};}
   function normalize(d){var s=defState();return {tx:d.tx||[],goals:d.goals||[],events:d.events||[],
     today:d.today&&d.today.tasks?d.today:{date:"",tasks:[]},doneDays:d.doneDays||[],groceries:d.groceries||[],delegated:d.delegated||[],history:d.history||[],
-    schedule:d.schedule||s.schedule,scheduleDone:d.scheduleDone||{date:"",ids:[]},
+    schedule:d.schedule||s.schedule,scheduleDone:d.scheduleDone||{date:"",ids:[]},wish:normWish(d.wish),
+    income:normIncome(d.income),savings:normSav(d.savings),ourgoals:normList(d.ourgoals),
     settings:Object.assign(s.settings,d.settings||{})};}
+  function normList(a){return Array.isArray(a)?a.filter(function(i){return i&&i.id;}).map(function(i){return {id:i.id,text:String(i.text||""),done:!!i.done};}):[];}
+  function normSav(w){w=w||{};function A(x){return Array.isArray(x)?x.filter(function(i){return i&&i.id&&typeof i.amount==="number";}).map(function(i){return {id:i.id,amount:i.amount,note:String(i.note||""),date:i.date||""};}):[];}return {son:A(w.son),daughter:A(w.daughter),common:A(w.common),mine:A(w.mine)};}
+  function normIncome(a){return Array.isArray(a)?a.filter(function(i){return i&&i.id&&typeof i.amount==="number";}).map(function(i){return {id:i.id,src:String(i.src||""),amount:i.amount,date:i.date||""};}):[];}
   function loadLocal(){try{var s=localStorage.getItem("kabinet_v1");if(s){var d=JSON.parse(s);if(d&&typeof d==="object")state=normalize(d);}}catch(e){}}
   function saveLocal(){try{localStorage.setItem("kabinet_v1",JSON.stringify(state));}catch(e){}}
   function save(){saveLocal();renderAll();if(docref){docref.set({state:state,updatedAt:Date.now()}).catch(function(){});}}
@@ -724,15 +804,94 @@ h1{font-family:"Unbounded",sans-serif;font-weight:700;font-size:clamp(24px,7vw,3
     });
   }
 
-  function renderAll(){renderBalances();renderImportant();renderShopBanner();renderNamaz();renderR3();renderSchedule();renderDeleg();renderShop();renderFin();renderCatChart();renderGoals();renderCal();}
+  function renderWish(){
+    var seg=el("wish-seg");if(seg){Array.prototype.forEach.call(seg.querySelectorAll("button"),function(b){b.classList.toggle("on",b.getAttribute("data-wcat")===wishCat);});}
+    var ph={buy:"напр. сумка, духи, книга",films:"напр. Оппенгеймер",doramas:"напр. Королева слёз",anime:"напр. Магическая битва"};
+    var inp=el("wish-input");if(inp&&document.activeElement!==inp)inp.placeholder=ph[wishCat]||"Добавить…";
+    var list=el("wish-list");if(!list)return;list.innerHTML="";
+    var arr=(state.wish&&state.wish[wishCat])||[];
+    var items=arr.slice().sort(function(a,b){if(a.done!==b.done)return a.done?1:-1;return 0;});
+    if(!items.length){list.innerHTML='<div class="empty-note">Список пуст. Добавь, что хочешь '+(wishCat==="buy"?"в вишлист":"посмотреть")+'.</div>';}
+    var anyDone=false;
+    items.forEach(function(g){if(g.done)anyDone=true;
+      var d=document.createElement("div");d.className="item"+(g.done?" done":"");
+      d.innerHTML='<button class="chk'+(g.done?" on":"")+'" data-wchk="'+g.id+'" aria-label="Отметить">'+(g.done?"✓":"")+'</button>'+
+        '<div class="body"><div class="t1">'+esc(g.text)+'</div></div>'+
+        '<button class="del" aria-label="Удалить" data-wdel="'+g.id+'">×</button>';
+      list.appendChild(d);
+    });
+    var wc=el("wish-clear");if(wc)wc.style.display=anyDone?"inline-block":"none";
+  }
+  function renderInc(){
+    var mk=todayISO().slice(0,7),mTotal=0;
+    state.income.forEach(function(x){if((x.date||"").slice(0,7)===mk)mTotal+=x.amount;});
+    var mt=el("inc-month-total");if(mt)mt.textContent=money(mTotal);
+    var mn=el("inc-month-name");if(mn)mn.textContent=monthNameRu(mk);
+    var list=el("inc-list");if(!list)return;list.innerHTML="";
+    if(!state.income.length){list.innerHTML='<div class="empty-note">Пока нет записей. Впиши свой доход выше.</div>';return;}
+    var groups={};state.income.forEach(function(x){var k=(x.date||"").slice(0,7)||"—";(groups[k]=groups[k]||[]).push(x);});
+    Object.keys(groups).sort().reverse().forEach(function(k){
+      var sum=0;groups[k].forEach(function(x){sum+=x.amount;});
+      var h=document.createElement("div");h.style.cssText="display:flex;justify-content:space-between;align-items:center;margin:14px 0 8px;font-weight:600;color:var(--violet)";
+      h.innerHTML='<span>'+monthNameRu(k)+'</span><span class="amt">'+money(sum)+'</span>';list.appendChild(h);
+      groups[k].slice().sort(function(a,b){return (a.date<b.date)?1:-1;}).forEach(function(x){
+        var d=document.createElement("div");d.className="item";
+        d.innerHTML='<div class="body"><div class="t1">'+esc(x.src||"Доход")+'</div><div class="t2">'+fmtDate(x.date)+'</div></div>'+
+          '<div class="amt" style="color:var(--income)">'+money(x.amount)+'</div>'+
+          '<button class="del" aria-label="Удалить" data-incdel="'+x.id+'">×</button>';
+        list.appendChild(d);
+      });
+    });
+  }
+  function savTotal(k){var s=0;(state.savings[k]||[]).forEach(function(e){s+=e.amount;});return s;}
+  function renderSav(){
+    var tot=0;SAV.forEach(function(b){tot+=savTotal(b[0]);});
+    var tt=el("sav-total");if(tt)tt.textContent=money(tot);
+    var wrap=el("sav-buckets");if(!wrap)return;wrap.innerHTML="";
+    SAV.forEach(function(b){
+      var k=b[0],sum=savTotal(k);
+      var entries=(state.savings[k]||[]).slice().sort(function(a,z){return (a.date<z.date)?1:-1;});
+      var rows="";entries.forEach(function(e){
+        rows+='<div class="item"><div class="body"><div class="t1">'+(e.note?esc(e.note):(e.amount<0?"Снятие":"Пополнение"))+'</div><div class="t2">'+fmtDate(e.date)+'</div></div>'+
+          '<div class="amt" style="color:'+(e.amount<0?"var(--expense)":"var(--income)")+'">'+(e.amount<0?"−":"+")+money(Math.abs(e.amount))+'</div>'+
+          '<button class="del" aria-label="Удалить" data-savdel="'+e.id+'">×</button></div>';
+      });
+      var c=document.createElement("div");c.className="card";
+      c.innerHTML='<h2>'+b[2]+' '+b[1]+'</h2>'+
+        '<div style="font-family:\'Unbounded\',sans-serif;font-size:20px;font-weight:600;color:var(--violet);margin-bottom:8px">'+money(sum)+'</div>'+
+        '<div class="acts"><input type="text" inputmode="decimal" placeholder="Сумма, ₽" data-savamt="'+k+'" style="flex:1"><input type="text" maxlength="30" placeholder="заметка" data-savnote="'+k+'" style="flex:1.2"></div>'+
+        '<div class="acts" style="margin-top:8px"><button class="add" data-savadd="'+k+'" style="flex:1">+ Отложить</button><button data-savsub="'+k+'" style="flex:1;font-family:\'Golos Text\',sans-serif;font-size:14px;font-weight:600;background:none;border:1.5px solid var(--line);border-radius:12px;color:var(--muted);cursor:pointer">− Снять</button></div>'+
+        (rows?'<div class="list" style="margin-top:10px">'+rows+'</div>':'');
+      wrap.appendChild(c);
+    });
+  }
+  function renderOurg(){
+    var list=el("ourg-list");if(!list)return;list.innerHTML="";
+    var items=state.ourgoals.slice().sort(function(a,b){if(a.done!==b.done)return a.done?1:-1;return 0;});
+    if(!items.length){list.innerHTML='<div class="empty-note">Пока пусто. Впишите вашу общую цель с супругом.</div>';}
+    var anyDone=false;
+    items.forEach(function(g){if(g.done)anyDone=true;
+      var d=document.createElement("div");d.className="item"+(g.done?" done":"");
+      d.innerHTML='<button class="chk'+(g.done?" on":"")+'" data-ogchk="'+g.id+'" aria-label="Готово">'+(g.done?"✓":"")+'</button>'+
+        '<div class="body"><div class="t1">'+esc(g.text)+'</div></div>'+
+        '<button class="del" aria-label="Удалить" data-ogdel="'+g.id+'">×</button>';
+      list.appendChild(d);
+    });
+    var oc=el("ourg-clear");if(oc)oc.style.display=anyDone?"inline-block":"none";
+  }
+  function renderAll(){renderBalances();renderImportant();renderShopBanner();renderNamaz();renderR3();renderSchedule();renderDeleg();renderShop();renderFin();renderCatChart();renderGoals();renderInc();renderSav();renderWish();renderOurg();renderCal();}
 
   /* ---------- tabs ---------- */
   var tabs=document.querySelectorAll(".tab");
   tabs.forEach(function(tb){tb.addEventListener("click",function(){
     tabs.forEach(function(x){x.setAttribute("aria-selected","false");});tb.setAttribute("aria-selected","true");
     var t=tb.getAttribute("data-tab");
-    ["today","sched","shop","fin","goals","cal"].forEach(function(k){el("tab-"+k).classList.toggle("hide",k!==t);});
+    ["today","sched","shop","fin","inc","goals","sav","wish","ourg","cal"].forEach(function(k){el("tab-"+k).classList.toggle("hide",k!==t);});
     if(t==="today")renderNamaz();
+    if(t==="wish")renderWish();
+    if(t==="inc")renderInc();
+    if(t==="sav")renderSav();
+    if(t==="ourg")renderOurg();
   });});
 
   /* ---------- namaz settings ---------- */
@@ -776,6 +935,19 @@ h1{font-family:"Unbounded",sans-serif;font-weight:700;font-size:clamp(24px,7vw,3
   el("shop-btn").addEventListener("click",addShop);
   el("shop-input").addEventListener("keydown",function(e){if(e.key==="Enter")addShop();});
   el("shop-clear").addEventListener("click",function(){state.groceries=state.groceries.filter(function(g){return !g.bought;});save();});
+  function addWish(){var v=el("wish-input").value.trim();if(!v)return;if(!state.wish[wishCat])state.wish[wishCat]=[];state.wish[wishCat].push({id:uid(),text:v,done:false});el("wish-input").value="";save();el("wish-input").focus();}
+  el("wish-btn").addEventListener("click",addWish);
+  el("wish-input").addEventListener("keydown",function(e){if(e.key==="Enter")addWish();});
+  el("wish-clear").addEventListener("click",function(){state.wish[wishCat]=(state.wish[wishCat]||[]).filter(function(g){return !g.done;});save();});
+  el("wish-seg").addEventListener("click",function(e){var b=e.target&&e.target.getAttribute&&e.target.getAttribute("data-wcat");if(!b)return;wishCat=b;renderWish();});
+  function addInc(){var src=el("inc-src").value.trim();var a=parseAmt(el("inc-amt").value);var dt=el("inc-date").value||todayISO();if(isNaN(a)||a<=0){el("inc-amt").focus();return;}state.income.push({id:uid(),src:src,amount:a,date:dt});el("inc-src").value="";el("inc-amt").value="";save();el("inc-amt").focus();}
+  el("inc-btn").addEventListener("click",addInc);
+  el("inc-amt").addEventListener("keydown",function(e){if(e.key==="Enter")addInc();});
+  function savAdd(k,sign){var ai=document.querySelector('[data-savamt="'+k+'"]');var ni=document.querySelector('[data-savnote="'+k+'"]');var a=parseAmt(ai&&ai.value);if(isNaN(a)||a<=0){if(ai)ai.focus();return;}if(!state.savings[k])state.savings[k]=[];state.savings[k].push({id:uid(),amount:sign*a,note:(ni&&ni.value.trim())||"",date:todayISO()});save();}
+  function addOurg(){var v=el("ourg-input").value.trim();if(!v)return;state.ourgoals.push({id:uid(),text:v,done:false});el("ourg-input").value="";save();el("ourg-input").focus();}
+  el("ourg-btn").addEventListener("click",addOurg);
+  el("ourg-input").addEventListener("keydown",function(e){if(e.key==="Enter")addOurg();});
+  el("ourg-clear").addEventListener("click",function(){state.ourgoals=state.ourgoals.filter(function(g){return !g.done;});save();});
   el("shop-day").addEventListener("change",function(){state.settings.shopDay=parseInt(this.value,10);save();});
 
   /* ---------- finance form ---------- */
@@ -845,6 +1017,14 @@ h1{font-family:"Unbounded",sans-serif;font-weight:700;font-size:clamp(24px,7vw,3
     if((v=t.getAttribute("data-scdel"))){confirmDel(t,function(){state.schedule=state.schedule.filter(function(x){return x.id!==v;});save();});return;}
     if((v=t.getAttribute("data-shchk"))){state.groceries.forEach(function(x){if(x.id===v)x.bought=!x.bought;});save();return;}
     if((v=t.getAttribute("data-shdel"))){state.groceries=state.groceries.filter(function(x){return x.id!==v;});save();return;}
+    if((v=t.getAttribute("data-wchk"))){for(var wk in state.wish){state.wish[wk].forEach(function(x){if(x.id===v)x.done=!x.done;});}save();return;}
+    if((v=t.getAttribute("data-wdel"))){var wid=v;for(var wk2 in state.wish){state.wish[wk2]=state.wish[wk2].filter(function(x){return x.id!==wid;});}save();return;}
+    if((v=t.getAttribute("data-incdel"))){confirmDel(t,function(){state.income=state.income.filter(function(x){return x.id!==v;});save();});return;}
+    if((v=t.getAttribute("data-savadd"))){savAdd(v,1);return;}
+    if((v=t.getAttribute("data-savsub"))){savAdd(v,-1);return;}
+    if((v=t.getAttribute("data-savdel"))){var sid=v;confirmDel(t,function(){for(var sk in state.savings){state.savings[sk]=state.savings[sk].filter(function(x){return x.id!==sid;});}save();});return;}
+    if((v=t.getAttribute("data-ogchk"))){state.ourgoals.forEach(function(x){if(x.id===v)x.done=!x.done;});save();return;}
+    if((v=t.getAttribute("data-ogdel"))){state.ourgoals=state.ourgoals.filter(function(x){return x.id!==v;});save();return;}
     if((v=t.getAttribute("data-dgchk"))){state.delegated.forEach(function(x){if(x.id===v)x.done=!x.done;});save();return;}
     if((v=t.getAttribute("data-dgdel"))){confirmDel(t,function(){state.delegated=state.delegated.filter(function(x){return x.id!==v;});save();});return;}
     if((v=t.getAttribute("data-gdel"))){confirmDel(t,function(){state.goals=state.goals.filter(function(x){return x.id!==v;});save();});return;}
@@ -857,6 +1037,7 @@ h1{font-family:"Unbounded",sans-serif;font-weight:700;font-size:clamp(24px,7vw,3
   /* ---------- init ---------- */
   var dl=el("cats");DEFAULT_CATS.forEach(function(c){var o=document.createElement("option");o.value=c;dl.appendChild(o);});
   el("fin-date").value=todayISO();el("e-date").value=todayISO();
+  var _incd=el("inc-date");if(_incd)_incd.value=todayISO();
   loadLocal();el("shop-day").value=String(state.settings.shopDay);renderAll();initDB();
   setInterval(function(){renderNamaz();renderImportant();},60000);
 })();
