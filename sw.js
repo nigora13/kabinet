@@ -1,4 +1,4 @@
-var CACHE = "app-cache-v1";
+var CACHE = "app-cache-v2";
 var ASSETS = ["./", "./index.html", "./manifest.json", "./icon-192.png", "./icon-512.png"];
 
 self.addEventListener("install", function (e) {
@@ -18,19 +18,29 @@ self.addEventListener("activate", function (e) {
 self.addEventListener("fetch", function (e) {
   if (e.request.method !== "GET") return;
   var url = new URL(e.request.url);
-  if (url.origin !== location.origin) return; // шрифты и внешние ресурсы не трогаем — грузятся как обычно
+  if (url.origin !== location.origin) return; // шрифты и внешние ресурсы не трогаем
 
+  // страницу (index.html) всегда берём из сети, чтобы обновления были видны сразу; офлайн — из кэша
+  var isDoc = e.request.mode === "navigate" || url.pathname.endsWith("/") || url.pathname.endsWith("index.html");
+  if (isDoc) {
+    e.respondWith(
+      fetch(e.request).then(function (res) {
+        if (res && res.status === 200) { var copy = res.clone(); caches.open(CACHE).then(function (c) { c.put(e.request, copy); }); }
+        return res;
+      }).catch(function () {
+        return caches.match(e.request).then(function (c) { return c || caches.match("./index.html"); });
+      })
+    );
+    return;
+  }
+
+  // остальное (иконки, манифест) — из кэша с фоновым обновлением
   e.respondWith(
     caches.match(e.request).then(function (cached) {
-      var network = fetch(e.request)
-        .then(function (res) {
-          if (res && res.status === 200) {
-            var copy = res.clone();
-            caches.open(CACHE).then(function (c) { c.put(e.request, copy); });
-          }
-          return res;
-        })
-        .catch(function () { return cached; });
+      var network = fetch(e.request).then(function (res) {
+        if (res && res.status === 200) { var copy = res.clone(); caches.open(CACHE).then(function (c) { c.put(e.request, copy); }); }
+        return res;
+      }).catch(function () { return cached; });
       return cached || network;
     })
   );
