@@ -199,6 +199,7 @@ h1{font-family:"Unbounded",sans-serif;font-weight:700;font-size:clamp(24px,7vw,3
     <button class="tab" role="tab" aria-selected="false" data-tab="shop">🛒 Продукты</button>
     <button class="tab" role="tab" aria-selected="false" data-tab="fin">💰 Финансы</button>
     <button class="tab" role="tab" aria-selected="false" data-tab="inc">📈 Доход</button>
+    <button class="tab" role="tab" aria-selected="false" data-tab="ads">📣 Реклама</button>
     <button class="tab" role="tab" aria-selected="false" data-tab="goals">🏦 Копилка</button>
     <button class="tab" role="tab" aria-selected="false" data-tab="sav">💎 Сбережения</button>
     <button class="tab" role="tab" aria-selected="false" data-tab="wish">🌍 Мой мир</button>
@@ -374,6 +375,27 @@ h1{font-family:"Unbounded",sans-serif;font-weight:700;font-size:clamp(24px,7vw,3
     </div>
   </section>
 
+  <!-- РЕКЛАМА (заработок) -->
+  <section id="tab-ads" class="hide">
+    <div class="card">
+      <h2>Заработок на рекламе</h2>
+      <div style="font-family:'Unbounded',sans-serif;font-size:26px;font-weight:600;color:var(--income)" id="ads-total">0 ₽</div>
+      <div class="note" style="margin-top:2px">Всего заработано менеджером по рекламе у блогеров</div>
+      <div class="acts" style="margin-top:12px">
+        <input id="ads-desc" type="text" maxlength="60" placeholder="Блогер / бренд / сделка">
+      </div>
+      <div class="acts" style="margin-top:8px">
+        <input id="ads-amt" type="text" inputmode="decimal" placeholder="Сумма, ₽" style="flex:1">
+        <input id="ads-date" type="date" style="flex:1.1">
+        <button class="add" id="ads-btn">Добавить</button>
+      </div>
+    </div>
+    <div class="card">
+      <h2>По месяцам</h2>
+      <div class="list" id="ads-list"></div>
+    </div>
+  </section>
+
   <!-- СБЕРЕЖЕНИЯ -->
   <section id="tab-sav" class="hide">
     <div class="card">
@@ -474,7 +496,7 @@ h1{font-family:"Unbounded",sans-serif;font-weight:700;font-size:clamp(24px,7vw,3
 
   function defState(){return {tx:[],goals:[],events:[],today:{date:"",tasks:[]},doneDays:[],groceries:[],delegated:[],history:[],
     schedule:DEFAULT_SCHEDULE.slice(),scheduleDone:{date:"",ids:[]},wish:{buy:[],films:[],doramas:[],anime:[]},
-    income:[],savings:{son:[],daughter:[],common:[],mine:[]},ourgoals:[],
+    income:[],ads:[],savings:{son:[],daughter:[],common:[],mine:[]},ourgoals:[],
     settings:{city:"ekb",method:"mwl",asr:"hanafi",shopDay:-1}};}
   var state=defState();
   var wishCat="films";
@@ -529,9 +551,10 @@ h1{font-family:"Unbounded",sans-serif;font-weight:700;font-size:clamp(24px,7vw,3
   function normalize(d){var s=defState();return {tx:d.tx||[],goals:d.goals||[],events:d.events||[],
     today:d.today&&d.today.tasks?d.today:{date:"",tasks:[]},doneDays:d.doneDays||[],groceries:d.groceries||[],delegated:d.delegated||[],history:d.history||[],
     schedule:d.schedule||s.schedule,scheduleDone:d.scheduleDone||{date:"",ids:[]},wish:normWish(d.wish),
-    income:normIncome(d.income),savings:normSav(d.savings),ourgoals:normList(d.ourgoals),
+    income:normIncome(d.income),ads:normAds(d.ads),savings:normSav(d.savings),ourgoals:normList(d.ourgoals),
     settings:Object.assign(s.settings,d.settings||{})};}
   function normList(a){return Array.isArray(a)?a.filter(function(i){return i&&i.id;}).map(function(i){return {id:i.id,text:String(i.text||""),done:!!i.done};}):[];}
+  function normAds(a){return Array.isArray(a)?a.filter(function(i){return i&&i.id&&typeof i.amount==="number";}).map(function(i){return {id:i.id,desc:String(i.desc||""),amount:i.amount,date:i.date||""};}):[];}
   function normSav(w){w=w||{};function A(x){return Array.isArray(x)?x.filter(function(i){return i&&i.id&&typeof i.amount==="number";}).map(function(i){return {id:i.id,amount:i.amount,note:String(i.note||""),date:i.date||""};}):[];}return {son:A(w.son),daughter:A(w.daughter),common:A(w.common),mine:A(w.mine)};}
   function normIncome(a){return Array.isArray(a)?a.filter(function(i){return i&&i.id&&typeof i.amount==="number";}).map(function(i){return {id:i.id,src:String(i.src||""),amount:i.amount,date:i.date||""};}):[];}
   function loadLocal(){try{var s=localStorage.getItem("kabinet_v1");if(s){var d=JSON.parse(s);if(d&&typeof d==="object")state=normalize(d);}}catch(e){}}
@@ -889,17 +912,37 @@ h1{font-family:"Unbounded",sans-serif;font-weight:700;font-size:clamp(24px,7vw,3
     });
     var oc=el("ourg-clear");if(oc)oc.style.display=anyDone?"inline-block":"none";
   }
-  function renderAll(){renderBalances();renderImportant();renderShopBanner();renderNamaz();renderR3();renderSchedule();renderDeleg();renderShop();renderFin();renderCatChart();renderGoals();renderInc();renderSav();renderWish();renderOurg();renderCal();}
+  function renderAds(){
+    var grand=0;state.ads.forEach(function(x){grand+=x.amount;});
+    var tt=el("ads-total");if(tt)tt.textContent=money(grand);
+    var list=el("ads-list");if(!list)return;list.innerHTML="";
+    if(!state.ads.length){list.innerHTML='<div class="empty-note">Пока нет записей. Добавь заработок выше или вставь списком.</div>';return;}
+    var groups={};state.ads.forEach(function(x){var k=(x.date||"").slice(0,7)||"—";(groups[k]=groups[k]||[]).push(x);});
+    Object.keys(groups).sort().reverse().forEach(function(k){
+      var sum=0;groups[k].forEach(function(x){sum+=x.amount;});
+      var h=document.createElement("div");h.style.cssText="display:flex;justify-content:space-between;align-items:center;margin:14px 0 8px;font-weight:600;color:var(--violet)";
+      h.innerHTML='<span>'+monthNameRu(k)+'</span><span class="amt">'+money(sum)+'</span>';list.appendChild(h);
+      groups[k].slice().sort(function(a,b){return (a.date<b.date)?1:-1;}).forEach(function(x){
+        var d=document.createElement("div");d.className="item";
+        d.innerHTML='<div class="body"><div class="t1">'+esc(x.desc||"Реклама")+'</div><div class="t2">'+fmtDate(x.date)+'</div></div>'+
+          '<div class="amt" style="color:var(--income)">'+money(x.amount)+'</div>'+
+          '<button class="del" aria-label="Удалить" data-adsdel="'+x.id+'">×</button>';
+        list.appendChild(d);
+      });
+    });
+  }
+  function renderAll(){renderBalances();renderImportant();renderShopBanner();renderNamaz();renderR3();renderSchedule();renderDeleg();renderShop();renderFin();renderCatChart();renderGoals();renderInc();renderAds();renderSav();renderWish();renderOurg();renderCal();}
 
   /* ---------- tabs ---------- */
   var tabs=document.querySelectorAll(".tab");
   tabs.forEach(function(tb){tb.addEventListener("click",function(){
     tabs.forEach(function(x){x.setAttribute("aria-selected","false");});tb.setAttribute("aria-selected","true");
     var t=tb.getAttribute("data-tab");
-    ["today","sched","shop","fin","inc","goals","sav","wish","ourg","cal"].forEach(function(k){el("tab-"+k).classList.toggle("hide",k!==t);});
+    ["today","sched","shop","fin","inc","ads","goals","sav","wish","ourg","cal"].forEach(function(k){el("tab-"+k).classList.toggle("hide",k!==t);});
     if(t==="today")renderNamaz();
     if(t==="wish")renderWish();
     if(t==="inc")renderInc();
+    if(t==="ads")renderAds();
     if(t==="sav")renderSav();
     if(t==="ourg")renderOurg();
   });});
@@ -953,6 +996,9 @@ h1{font-family:"Unbounded",sans-serif;font-weight:700;font-size:clamp(24px,7vw,3
   function addInc(){var src=el("inc-src").value.trim();var a=parseAmt(el("inc-amt").value);var dt=el("inc-date").value||todayISO();if(isNaN(a)||a<=0){el("inc-amt").focus();return;}state.income.push({id:uid(),src:src,amount:a,date:dt});el("inc-src").value="";el("inc-amt").value="";save();el("inc-amt").focus();}
   el("inc-btn").addEventListener("click",addInc);
   el("inc-amt").addEventListener("keydown",function(e){if(e.key==="Enter")addInc();});
+  function addAds(){var desc=el("ads-desc").value.trim();var a=parseAmt(el("ads-amt").value);var dt=el("ads-date").value||todayISO();if(isNaN(a)||a<=0){el("ads-amt").focus();return;}state.ads.push({id:uid(),desc:desc,amount:a,date:dt});el("ads-desc").value="";el("ads-amt").value="";save();el("ads-amt").focus();}
+  el("ads-btn").addEventListener("click",addAds);
+  el("ads-amt").addEventListener("keydown",function(e){if(e.key==="Enter")addAds();});
   function savAdd(k,sign){var ai=document.querySelector('[data-savamt="'+k+'"]');var ni=document.querySelector('[data-savnote="'+k+'"]');var a=parseAmt(ai&&ai.value);if(isNaN(a)||a<=0){if(ai)ai.focus();return;}if(!state.savings[k])state.savings[k]=[];state.savings[k].push({id:uid(),amount:sign*a,note:(ni&&ni.value.trim())||"",date:todayISO()});save();}
   function addOurg(){var v=el("ourg-input").value.trim();if(!v)return;state.ourgoals.push({id:uid(),text:v,done:false});el("ourg-input").value="";save();el("ourg-input").focus();}
   el("ourg-btn").addEventListener("click",addOurg);
@@ -960,7 +1006,7 @@ h1{font-family:"Unbounded",sans-serif;font-weight:700;font-size:clamp(24px,7vw,3
   el("ourg-clear").addEventListener("click",function(){state.ourgoals=state.ourgoals.filter(function(g){return !g.done;});save();});
   function doImport(){
     var raw=el("imp-text").value.split(/\r?\n/);
-    var added={films:0,doramas:0,anime:0,buy:0,goals:0,sav:0};
+    var added={films:0,doramas:0,anime:0,buy:0,goals:0,sav:0,ads:0};
     function hasText(arr,t){t=t.toLowerCase();return arr.some(function(x){return (x.text||"").toLowerCase()===t;});}
     var savMap={"сын":"son","дочь":"daughter","общее":"common","мое":"mine","моё":"mine","son":"son","daughter":"daughter","common":"common","mine":"mine"};
     raw.forEach(function(line){
@@ -973,10 +1019,11 @@ h1{font-family:"Unbounded",sans-serif;font-weight:700;font-size:clamp(24px,7vw,3
       else if(key==="в"||key==="вишлист"){ if(!hasText(state.wish.buy,val)){state.wish.buy.push({id:uid(),text:val,done:false});added.buy++;} }
       else if(key==="ц"||key==="цель"){ if(!hasText(state.ourgoals,val)){state.ourgoals.push({id:uid(),text:val,done:false});added.goals++;} }
       else if(key==="ц+"||key==="цель+"){ if(!hasText(state.ourgoals,val)){state.ourgoals.push({id:uid(),text:val,done:true});added.goals++;} }
+      else if(key==="рек"||key==="реклама"){ var ci=val.indexOf("="); if(ci>=0){ var adesc=val.slice(0,ci).trim(); var arest=val.slice(ci+1).trim(); var adt=todayISO(); var at=arest.indexOf("@"); if(at>=0){ var ds=arest.slice(at+1).trim(); arest=arest.slice(0,at).trim(); if(/^\d{4}-\d{2}$/.test(ds))adt=ds+"-01"; else if(/^\d{4}-\d{2}-\d{2}$/.test(ds))adt=ds; } var aa=parseAmt(arest); if(!isNaN(aa)&&aa>0&&!state.ads.some(function(e){return e.desc===adesc&&e.amount===aa&&e.date===adt;})){state.ads.push({id:uid(),desc:adesc,amount:aa,date:adt});added.ads++;} } }
       else if(savMap[key]!==undefined){ var a=parseAmt(val); if(!isNaN(a)&&a>0){ var b=savMap[key]; if(!state.savings[b].some(function(e){return e.amount===a&&e.note==="импорт";})){state.savings[b].push({id:uid(),amount:a,note:"импорт",date:todayISO()});added.sav++;} } }
     });
-    var total=added.films+added.doramas+added.anime+added.buy+added.goals+added.sav;
-    el("imp-res").textContent= total? ("Добавлено: фильмы "+added.films+", дорамы "+added.doramas+", аниме "+added.anime+", вишлист "+added.buy+", цели "+added.goals+", суммы "+added.sav) : "Ничего не распознала — проверь формат (напр. «ф: Название»).";
+    var total=added.films+added.doramas+added.anime+added.buy+added.goals+added.sav+added.ads;
+    el("imp-res").textContent= total? ("Добавлено: фильмы "+added.films+", дорамы "+added.doramas+", аниме "+added.anime+", вишлист "+added.buy+", цели "+added.goals+", суммы "+added.sav+", реклама "+added.ads) : "Ничего не распознала — проверь формат (напр. «ф: Название»).";
     if(total){el("imp-text").value="";save();}
   }
   el("imp-btn").addEventListener("click",doImport);
@@ -1052,6 +1099,7 @@ h1{font-family:"Unbounded",sans-serif;font-weight:700;font-size:clamp(24px,7vw,3
     if((v=t.getAttribute("data-wchk"))){for(var wk in state.wish){state.wish[wk].forEach(function(x){if(x.id===v)x.done=!x.done;});}save();return;}
     if((v=t.getAttribute("data-wdel"))){var wid=v;for(var wk2 in state.wish){state.wish[wk2]=state.wish[wk2].filter(function(x){return x.id!==wid;});}save();return;}
     if((v=t.getAttribute("data-incdel"))){confirmDel(t,function(){state.income=state.income.filter(function(x){return x.id!==v;});save();});return;}
+    if((v=t.getAttribute("data-adsdel"))){confirmDel(t,function(){state.ads=state.ads.filter(function(x){return x.id!==v;});save();});return;}
     if((v=t.getAttribute("data-savadd"))){savAdd(v,1);return;}
     if((v=t.getAttribute("data-savsub"))){savAdd(v,-1);return;}
     if((v=t.getAttribute("data-savdel"))){var sid=v;confirmDel(t,function(){for(var sk in state.savings){state.savings[sk]=state.savings[sk].filter(function(x){return x.id!==sid;});}save();});return;}
@@ -1070,6 +1118,7 @@ h1{font-family:"Unbounded",sans-serif;font-weight:700;font-size:clamp(24px,7vw,3
   var dl=el("cats");DEFAULT_CATS.forEach(function(c){var o=document.createElement("option");o.value=c;dl.appendChild(o);});
   el("fin-date").value=todayISO();el("e-date").value=todayISO();
   var _incd=el("inc-date");if(_incd)_incd.value=todayISO();
+  var _adsd=el("ads-date");if(_adsd)_adsd.value=todayISO();
   loadLocal();el("shop-day").value=String(state.settings.shopDay);renderAll();initDB();
   setInterval(function(){renderNamaz();renderImportant();},60000);
 })();
