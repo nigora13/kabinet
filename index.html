@@ -1025,8 +1025,8 @@ h1{font-family:"Unbounded",sans-serif;font-weight:700;font-size:clamp(24px,7vw,3
   el("ourg-btn").addEventListener("click",addOurg);
   el("ourg-input").addEventListener("keydown",function(e){if(e.key==="Enter")addOurg();});
   el("ourg-clear").addEventListener("click",function(){state.ourgoals=state.ourgoals.filter(function(g){return !g.done;});save();});
-  function doImport(){
-    var raw=el("imp-text").value.split(/\r?\n/);
+  function importText(txt){
+    var raw=String(txt||"").split(/\r?\n/);
     var added={films:0,doramas:0,anime:0,buy:0,goals:0,sav:0,ads:0};
     function hasText(arr,t){t=t.toLowerCase();return arr.some(function(x){return (x.text||"").toLowerCase()===t;});}
     var savMap={"сын":"son","дочь":"daughter","общее":"common","мое":"mine","моё":"mine","son":"son","daughter":"daughter","common":"common","mine":"mine"};
@@ -1043,10 +1043,11 @@ h1{font-family:"Unbounded",sans-serif;font-weight:700;font-size:clamp(24px,7vw,3
       else if(key==="рек"||key==="реклама"){ var ci=val.indexOf("="); if(ci>=0){ var adesc=val.slice(0,ci).trim(); var arest=val.slice(ci+1).trim(); var adt=todayISO(); var at=arest.indexOf("@"); if(at>=0){ var ds=arest.slice(at+1).trim(); arest=arest.slice(0,at).trim(); if(/^\d{4}-\d{2}$/.test(ds))adt=ds+"-01"; else if(/^\d{4}-\d{2}-\d{2}$/.test(ds))adt=ds; } var aa=parseAmt(arest); if(!isNaN(aa)&&aa>0&&!state.ads.some(function(e){return e.desc===adesc&&e.amount===aa&&e.date===adt;})){state.ads.push({id:uid(),desc:adesc,amount:aa,date:adt});added.ads++;} } }
       else if(savMap[key]!==undefined){ var a=parseAmt(val); if(!isNaN(a)&&a>0){ var b=savMap[key]; if(!state.savings[b].some(function(e){return e.amount===a&&e.note==="импорт";})){state.savings[b].push({id:uid(),amount:a,note:"импорт",date:todayISO()});added.sav++;} } }
     });
-    var total=added.films+added.doramas+added.anime+added.buy+added.goals+added.sav+added.ads;
-    el("imp-res").textContent= total? ("Добавлено: фильмы "+added.films+", дорамы "+added.doramas+", аниме "+added.anime+", вишлист "+added.buy+", цели "+added.goals+", суммы "+added.sav+", реклама "+added.ads) : "Ничего не распознала — проверь формат (напр. «ф: Название»).";
-    if(total){el("imp-text").value="";save();}
+    return added;
   }
+  function impTotal(a){return a.films+a.doramas+a.anime+a.buy+a.goals+a.sav+a.ads;}
+  function impSummary(a){return "Добавлено: фильмы "+a.films+", дорамы "+a.doramas+", аниме "+a.anime+", вишлист "+a.buy+", цели "+a.goals+", суммы "+a.sav+", реклама "+a.ads;}
+  function doImport(){var a=importText(el("imp-text").value);var total=impTotal(a);el("imp-res").textContent= total? impSummary(a) : "Ничего не распознала — проверь формат (напр. «ф: Название»).";if(total){el("imp-text").value="";save();}}
   el("imp-btn").addEventListener("click",doImport);
   el("shop-day").addEventListener("change",function(){state.settings.shopDay=parseInt(this.value,10);save();});
 
@@ -1145,6 +1146,7 @@ h1{font-family:"Unbounded",sans-serif;font-weight:700;font-size:clamp(24px,7vw,3
   var _incd=el("inc-date");if(_incd)_incd.value=todayISO();
   var _adsd=el("ads-date");if(_adsd)_adsd.value=todayISO();
   loadLocal();el("shop-day").value=String(state.settings.shopDay);renderAll();initDB();
+  (function(){try{var h=location.hash||"";if(h.indexOf("#imp=")===0){var txt=decodeURIComponent(h.slice(5));var a=importText(txt);var total=impTotal(a);if(total){save();if(history.replaceState)history.replaceState(null,"",location.pathname+location.search);setTimeout(function(){alert("Загружено в Кабинет: "+total+" записей. Загляни во вкладки ✓");},300);}}}catch(e){}})();
   setInterval(function(){renderNamaz();renderImportant();},60000);
 })();
 </script>
