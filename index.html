@@ -430,8 +430,11 @@ h1{font-family:"Unbounded",sans-serif;font-weight:700;font-size:clamp(24px,7vw,3
   <section id="tab-ourg" class="hide">
     <div class="card">
       <h2>Наши цели</h2>
+      <div class="acts" style="margin-bottom:6px">
+        <input id="ourg-input" type="text" maxlength="80" placeholder="напр. Отпуск / Долг за машину">
+      </div>
       <div class="acts" style="margin-bottom:10px">
-        <input id="ourg-input" type="text" maxlength="80" placeholder="напр. Отпуск всей семьёй">
+        <input id="ourg-target" type="text" inputmode="decimal" placeholder="сумма-цель, если долг (необяз.)" style="flex:1">
         <button class="add" id="ourg-btn">Добавить</button>
       </div>
       <div class="list" id="ourg-list"></div>
@@ -500,6 +503,7 @@ h1{font-family:"Unbounded",sans-serif;font-weight:700;font-size:clamp(24px,7vw,3
     settings:{city:"ekb",method:"mwl",asr:"hanafi",shopDay:-1}};}
   var state=defState();
   var wishCat="films";
+  var ogEdit=null;
   var MONTHS_RU=["январь","февраль","март","апрель","май","июнь","июль","август","сентябрь","октябрь","ноябрь","декабрь"];
   function monthNameRu(k){var p=(k||"").split("-");if(p.length<2)return k||"";var m=parseInt(p[1],10);return (MONTHS_RU[m-1]||"")+" "+p[0];}
   var SAV=[["son","Сын","👦"],["daughter","Дочь","👧"],["common","Общее","🏠"],["mine","Моё","💜"]];
@@ -553,7 +557,7 @@ h1{font-family:"Unbounded",sans-serif;font-weight:700;font-size:clamp(24px,7vw,3
     schedule:d.schedule||s.schedule,scheduleDone:d.scheduleDone||{date:"",ids:[]},wish:normWish(d.wish),
     income:normIncome(d.income),ads:normAds(d.ads),savings:normSav(d.savings),ourgoals:normList(d.ourgoals),
     settings:Object.assign(s.settings,d.settings||{})};}
-  function normList(a){return Array.isArray(a)?a.filter(function(i){return i&&i.id;}).map(function(i){return {id:i.id,text:String(i.text||""),done:!!i.done};}):[];}
+  function normList(a){return Array.isArray(a)?a.filter(function(i){return i&&i.id;}).map(function(i){return {id:i.id,text:String(i.text||""),done:!!i.done,target:(typeof i.target==="number"&&i.target>0?i.target:0),paid:(typeof i.paid==="number"&&i.paid>0?i.paid:0)};}):[];}
   function normAds(a){return Array.isArray(a)?a.filter(function(i){return i&&i.id&&typeof i.amount==="number";}).map(function(i){return {id:i.id,desc:String(i.desc||""),amount:i.amount,date:i.date||""};}):[];}
   function normSav(w){w=w||{};function A(x){return Array.isArray(x)?x.filter(function(i){return i&&i.id&&typeof i.amount==="number";}).map(function(i){return {id:i.id,amount:i.amount,note:String(i.note||""),date:i.date||""};}):[];}return {son:A(w.son),daughter:A(w.daughter),common:A(w.common),mine:A(w.mine)};}
   function normIncome(a){return Array.isArray(a)?a.filter(function(i){return i&&i.id&&typeof i.amount==="number";}).map(function(i){return {id:i.id,src:String(i.src||""),amount:i.amount,date:i.date||""};}):[];}
@@ -903,12 +907,29 @@ h1{font-family:"Unbounded",sans-serif;font-weight:700;font-size:clamp(24px,7vw,3
     var items=state.ourgoals.slice().sort(function(a,b){if(a.done!==b.done)return a.done?1:-1;return 0;});
     if(!items.length){list.innerHTML='<div class="empty-note">Пока пусто. Впишите вашу общую цель с супругом.</div>';}
     var anyDone=false;
-    items.forEach(function(g){if(g.done)anyDone=true;
-      var d=document.createElement("div");d.className="item"+(g.done?" done":"");
-      d.innerHTML='<button class="chk'+(g.done?" on":"")+'" data-ogchk="'+g.id+'" aria-label="Готово">'+(g.done?"✓":"")+'</button>'+
-        '<div class="body"><div class="t1">'+esc(g.text)+'</div></div>'+
-        '<button class="del" aria-label="Удалить" data-ogdel="'+g.id+'">×</button>';
-      list.appendChild(d);
+    items.forEach(function(g){
+      var isPaid=g.target>0;
+      var complete=g.done||(isPaid&&g.paid>=g.target);
+      if(complete)anyDone=true;
+      var w=document.createElement("div");w.className="item"+(complete?" done":"");w.style.flexWrap="wrap";
+      if(ogEdit===g.id){
+        w.innerHTML='<div style="width:100%;display:flex;flex-direction:column;gap:6px">'+
+          '<input type="text" data-ogetext="'+g.id+'" value="'+esc(g.text)+'" style="border:1.5px solid var(--line);border-radius:10px;padding:8px">'+
+          '<input type="text" inputmode="decimal" data-ogetarget="'+g.id+'" value="'+(g.target||"")+'" placeholder="сумма-цель, если долг (необяз.)" style="border:1.5px solid var(--line);border-radius:10px;padding:8px">'+
+          '<div style="display:flex;gap:8px"><button class="add" data-ogsave="'+g.id+'" style="flex:1">Сохранить</button><button data-ogcancel="'+g.id+'" style="flex:1;background:none;border:1.5px solid var(--line);border-radius:12px;color:var(--muted);cursor:pointer">Отмена</button></div>'+
+          '</div>';
+        list.appendChild(w);return;
+      }
+      w.innerHTML='<button class="chk'+(complete?" on":"")+'" data-ogchk="'+g.id+'" aria-label="Готово">'+(complete?"✓":"")+'</button>'+
+        '<div class="body"><div class="t1">'+esc(g.text)+'</div>'+(isPaid?('<div class="t2">внесено '+money(g.paid)+' из '+money(g.target)+'</div>'):'')+'</div>'+
+        '<button data-ogedit="'+g.id+'" aria-label="Изменить" style="background:none;border:none;cursor:pointer;font-size:15px;color:var(--muted);padding:0 4px">✎</button>'+
+        '<button class="del" data-ogdel="'+g.id+'" aria-label="Удалить">×</button>';
+      if(isPaid){
+        var pct=Math.min(100,Math.round(g.paid/g.target*100));
+        w.insertAdjacentHTML("beforeend",'<div style="width:100%;margin-top:8px"><div class="bar"><div style="height:100%;width:'+pct+'%;background:var(--violet)"></div></div>'+
+          '<div style="display:flex;gap:8px;margin-top:6px"><input type="text" inputmode="decimal" data-ogpayin="'+g.id+'" placeholder="внести сумму" style="flex:1;border:1.5px solid var(--line);border-radius:10px;padding:8px"><button class="add" data-ogpay="'+g.id+'">+ Внести</button></div></div>');
+      }
+      list.appendChild(w);
     });
     var oc=el("ourg-clear");if(oc)oc.style.display=anyDone?"inline-block":"none";
   }
@@ -1000,7 +1021,7 @@ h1{font-family:"Unbounded",sans-serif;font-weight:700;font-size:clamp(24px,7vw,3
   el("ads-btn").addEventListener("click",addAds);
   el("ads-amt").addEventListener("keydown",function(e){if(e.key==="Enter")addAds();});
   function savAdd(k,sign){var ai=document.querySelector('[data-savamt="'+k+'"]');var ni=document.querySelector('[data-savnote="'+k+'"]');var a=parseAmt(ai&&ai.value);if(isNaN(a)||a<=0){if(ai)ai.focus();return;}if(!state.savings[k])state.savings[k]=[];state.savings[k].push({id:uid(),amount:sign*a,note:(ni&&ni.value.trim())||"",date:todayISO()});save();}
-  function addOurg(){var v=el("ourg-input").value.trim();if(!v)return;state.ourgoals.push({id:uid(),text:v,done:false});el("ourg-input").value="";save();el("ourg-input").focus();}
+  function addOurg(){var v=el("ourg-input").value.trim();if(!v)return;var t=parseAmt(el("ourg-target").value);state.ourgoals.push({id:uid(),text:v,done:false,target:(isNaN(t)||t<=0?0:t),paid:0});el("ourg-input").value="";el("ourg-target").value="";save();el("ourg-input").focus();}
   el("ourg-btn").addEventListener("click",addOurg);
   el("ourg-input").addEventListener("keydown",function(e){if(e.key==="Enter")addOurg();});
   el("ourg-clear").addEventListener("click",function(){state.ourgoals=state.ourgoals.filter(function(g){return !g.done;});save();});
@@ -1105,6 +1126,10 @@ h1{font-family:"Unbounded",sans-serif;font-weight:700;font-size:clamp(24px,7vw,3
     if((v=t.getAttribute("data-savdel"))){var sid=v;confirmDel(t,function(){for(var sk in state.savings){state.savings[sk]=state.savings[sk].filter(function(x){return x.id!==sid;});}save();});return;}
     if((v=t.getAttribute("data-ogchk"))){state.ourgoals.forEach(function(x){if(x.id===v)x.done=!x.done;});save();return;}
     if((v=t.getAttribute("data-ogdel"))){state.ourgoals=state.ourgoals.filter(function(x){return x.id!==v;});save();return;}
+    if((v=t.getAttribute("data-ogedit"))){ogEdit=v;renderOurg();return;}
+    if((v=t.getAttribute("data-ogcancel"))){ogEdit=null;renderOurg();return;}
+    if((v=t.getAttribute("data-ogsave"))){var et=document.querySelector('[data-ogetext="'+v+'"]');var eg=document.querySelector('[data-ogetarget="'+v+'"]');var nt=et?et.value.trim():"";var ntar=parseAmt(eg&&eg.value);state.ourgoals.forEach(function(x){if(x.id===v){if(nt)x.text=nt;x.target=(isNaN(ntar)||ntar<=0?0:ntar);}});ogEdit=null;save();return;}
+    if((v=t.getAttribute("data-ogpay"))){var pin=document.querySelector('[data-ogpayin="'+v+'"]');var pa=parseAmt(pin&&pin.value);if(isNaN(pa)||pa<=0){if(pin)pin.focus();return;}state.ourgoals.forEach(function(x){if(x.id===v){x.paid=(x.paid||0)+pa;if(x.target>0&&x.paid>=x.target)x.done=true;}});save();return;}
     if((v=t.getAttribute("data-dgchk"))){state.delegated.forEach(function(x){if(x.id===v)x.done=!x.done;});save();return;}
     if((v=t.getAttribute("data-dgdel"))){confirmDel(t,function(){state.delegated=state.delegated.filter(function(x){return x.id!==v;});save();});return;}
     if((v=t.getAttribute("data-gdel"))){confirmDel(t,function(){state.goals=state.goals.filter(function(x){return x.id!==v;});save();});return;}
