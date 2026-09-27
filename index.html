@@ -418,6 +418,16 @@ h1{font-family:"Unbounded",sans-serif;font-weight:700;font-size:clamp(24px,7vw,3
     <p class="note" style="margin-top:0">Общие цели с супругом. Отмечайте галочкой, когда достигли. Без суммы — деньги в Копилке.</p>
   </section>
 
+  <details id="imp-box" style="margin-top:6px">
+    <summary style="cursor:pointer;color:var(--violet);font-weight:600;font-size:13px;padding:6px 0">📥 Вставить списком</summary>
+    <div class="card" style="margin-top:8px">
+      <p class="note" style="margin-top:0">Вставь готовый блок от Лины и нажми «Загрузить» — фильмы, цели и суммы добавятся сразу.</p>
+      <textarea id="imp-text" rows="6" style="width:100%;box-sizing:border-box;border:1.5px solid var(--line);border-radius:12px;padding:10px;font-family:inherit;font-size:13px;resize:vertical" placeholder="ф: Фильм&#10;ц: Цель&#10;сын: 60000"></textarea>
+      <button class="add" id="imp-btn" style="margin-top:8px;width:100%">Загрузить</button>
+      <div id="imp-res" class="note" style="margin-top:6px"></div>
+    </div>
+  </details>
+
   <p class="note center" id="storage-note">Данные сохраняются автоматически.</p>
   <div class="foot">Собрала Лина · для Нигоры 🌿</div>
 </div>
@@ -948,6 +958,28 @@ h1{font-family:"Unbounded",sans-serif;font-weight:700;font-size:clamp(24px,7vw,3
   el("ourg-btn").addEventListener("click",addOurg);
   el("ourg-input").addEventListener("keydown",function(e){if(e.key==="Enter")addOurg();});
   el("ourg-clear").addEventListener("click",function(){state.ourgoals=state.ourgoals.filter(function(g){return !g.done;});save();});
+  function doImport(){
+    var raw=el("imp-text").value.split(/\r?\n/);
+    var added={films:0,doramas:0,anime:0,buy:0,goals:0,sav:0};
+    function hasText(arr,t){t=t.toLowerCase();return arr.some(function(x){return (x.text||"").toLowerCase()===t;});}
+    var savMap={"сын":"son","дочь":"daughter","общее":"common","мое":"mine","моё":"mine","son":"son","daughter":"daughter","common":"common","mine":"mine"};
+    raw.forEach(function(line){
+      line=line.trim(); if(!line||line.charAt(0)==="#")return;
+      var i=line.indexOf(":"); if(i<0)return;
+      var key=line.slice(0,i).trim().toLowerCase(), val=line.slice(i+1).trim(); if(!val)return;
+      if(key==="ф"||key==="фильм"){ if(!hasText(state.wish.films,val)){state.wish.films.push({id:uid(),text:val,done:false});added.films++;} }
+      else if(key==="д"||key==="дорама"){ if(!hasText(state.wish.doramas,val)){state.wish.doramas.push({id:uid(),text:val,done:false});added.doramas++;} }
+      else if(key==="а"||key==="аниме"){ if(!hasText(state.wish.anime,val)){state.wish.anime.push({id:uid(),text:val,done:false});added.anime++;} }
+      else if(key==="в"||key==="вишлист"){ if(!hasText(state.wish.buy,val)){state.wish.buy.push({id:uid(),text:val,done:false});added.buy++;} }
+      else if(key==="ц"||key==="цель"){ if(!hasText(state.ourgoals,val)){state.ourgoals.push({id:uid(),text:val,done:false});added.goals++;} }
+      else if(key==="ц+"||key==="цель+"){ if(!hasText(state.ourgoals,val)){state.ourgoals.push({id:uid(),text:val,done:true});added.goals++;} }
+      else if(savMap[key]!==undefined){ var a=parseAmt(val); if(!isNaN(a)&&a>0){ var b=savMap[key]; if(!state.savings[b].some(function(e){return e.amount===a&&e.note==="импорт";})){state.savings[b].push({id:uid(),amount:a,note:"импорт",date:todayISO()});added.sav++;} } }
+    });
+    var total=added.films+added.doramas+added.anime+added.buy+added.goals+added.sav;
+    el("imp-res").textContent= total? ("Добавлено: фильмы "+added.films+", дорамы "+added.doramas+", аниме "+added.anime+", вишлист "+added.buy+", цели "+added.goals+", суммы "+added.sav) : "Ничего не распознала — проверь формат (напр. «ф: Название»).";
+    if(total){el("imp-text").value="";save();}
+  }
+  el("imp-btn").addEventListener("click",doImport);
   el("shop-day").addEventListener("change",function(){state.settings.shopDay=parseInt(this.value,10);save();});
 
   /* ---------- finance form ---------- */
